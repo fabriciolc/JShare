@@ -1,4 +1,4 @@
-package br.univel.server;
+package br.univel.cliente;
 
 import java.io.File;
 import java.rmi.RemoteException;
