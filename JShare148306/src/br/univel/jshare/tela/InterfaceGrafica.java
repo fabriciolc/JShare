@@ -393,17 +393,12 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	}
 	protected void desconectar() {
 		try {
-			if (servidor != null) {
-				UnicastRemoteObject.unexportObject(this, true);
-
-				servidor = null;
-			}
-			txtIP.setEnabled(true);
-			txtPorta.setEnabled(true);
-			btnConectar.setEnabled(true);
+			Server.getInstance().desconectar(c);
 		} catch (Exception e) {
-			e.printStackTrace();
+			// TODO: handle exception
 		}
+
+		
 
 		
 	}
