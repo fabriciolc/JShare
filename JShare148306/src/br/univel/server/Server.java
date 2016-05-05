@@ -1,10 +1,12 @@
 package br.univel.server;
 
 import java.io.File;
+
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +15,7 @@ import br.univel.jshare.tela.*;
 
 
 import br.dagostini.jshare.comum.pojos.Arquivo;
+import br.dagostini.jshare.comum.pojos.Diretorio;
 import br.dagostini.jshare.comun.Cliente;
 import br.dagostini.jshare.comun.IServer;
 
@@ -33,7 +36,11 @@ public class Server implements IServer {
 	
 	private IServer server ;
 	
+	private IServer serverC ;
+	
 	private Registry registro;
+	
+	private Registry registroC;
 	
 	public File diretorio;
 	
@@ -45,6 +52,7 @@ public class Server implements IServer {
 	public void registrarCliente(Cliente c) throws RemoteException {
 		mapaClientes.put(c.getIp(), c);
 		System.out.println("Cliente: "+c.getNome()+" IP: "+c.getIp()+"Entrou");
+		InterfaceGrafica.getInstance().mostrarConectados(mapaClientes);
 		
 		
 		
@@ -52,7 +60,7 @@ public class Server implements IServer {
 
 	@Override
 	public void publicarListaArquivos(Cliente c, List<Arquivo> lista) throws RemoteException {
-		// TODO Auto-generated method stub
+		mapaArquivos.put(c, lista);
 		
 	}
 
@@ -70,27 +78,12 @@ public class Server implements IServer {
 
 	@Override
 	public void desconectar(Cliente c) throws RemoteException {
-		try {
-			if (server != null) {
-				UnicastRemoteObject.unexportObject(this, true);
-				removerDaLista(c);
-				server = null;
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}		
-	}
-	public void teste(){
-		InterfaceGrafica.getInstance().mostrarConectados();
+		
 	}
 	
-	public Map<String, Cliente> enviarListaConectados(){
-		return mapaClientes;
-	}
-	
-	private void removerDaLista(Cliente c) {
+	public void removerDaLista(Cliente c) {
 		mapaClientes.remove(c.getIp());
+		InterfaceGrafica.getInstance().mostrarConectados(mapaClientes);
 		
 	}
 	
@@ -118,20 +111,34 @@ public class Server implements IServer {
 	
 	}
 	
-	public void conectar(String host,int porta, Cliente c){
-	
+	private List<Arquivo> criarListaDeArquivos() {	
+		File dirUpload = new File("C:/Teste/JShare/Uploads");
+		File dirDownload = new File("C:/Teste/JShare/Downloads");
+
+		if (!dirUpload.exists())
+			dirUpload.mkdirs();
+		if (!dirDownload.exists())
+			dirDownload.mkdirs();
 		
-		try {
-			registro = LocateRegistry.getRegistry(host, porta);
-			server = (IServer)registro.lookup(IServer.NOME_SERVICO);
-			
-			server.registrarCliente(c);
-			teste();
-			
-			System.out.println("Conectado");
-		} catch (Exception e) {
-			e.printStackTrace();
+		
+		List<Arquivo> listaArquivos = new ArrayList<>();
+		List<Diretorio> listaDiretorios = new ArrayList<>();
+		
+		for (File file : dirUpload.listFiles()) {
+			if (file.isFile()) {
+				Arquivo arq = new Arquivo();
+				arq.setNome(file.getName());
+				arq.setTamanho(file.length());
+				listaArquivos.add(arq);
+			} else {
+				Diretorio dir = new Diretorio();
+				dir.setNome(file.getName());
+				listaDiretorios.add(dir);				
+			}
 		}
 		
+		return listaArquivos;
 	}
+
+	
 }

@@ -6,6 +6,8 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 
 	private JPanel contentPane;
 	private static InterfaceGrafica instance = null;
+	private SimpleDateFormat data = new SimpleDateFormat("dd/MM/yyyy H:mm:ss:SSS");
 
 	/**
 	 * Launch the application.
@@ -264,7 +267,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		gbc_lblPastaCompartilhada.gridy = 2;
 		panel_1.add(lblPastaCompartilhada, gbc_lblPastaCompartilhada);
 		
-		JButton btnIniciarServio = new JButton("Iniciar Servi\u00E7o");
+		btnIniciarServio = new JButton("Iniciar Servi\u00E7o");
 		btnIniciarServio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				iniciarServico();
@@ -276,7 +279,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		gbc_btnIniciarServio.gridy = 2;
 		panel_1.add(btnIniciarServio, gbc_btnIniciarServio);
 		
-		JButton btnParaServio = new JButton("Para Servi\u00E7o");
+		btnParaServio = new JButton("Para Servi\u00E7o");
 		btnParaServio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				pararServico();
@@ -320,6 +323,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		
 		labelIP.setText(pegarIPLocal());
 		labelIPSV.setText(pegarIPLocal());
+		btnParaServio.setEnabled(false);
 	}
 	
 	
@@ -343,9 +347,9 @@ public class InterfaceGrafica extends JFrame implements IServer{
 
 	private Cliente cliente;
 	
-	private IServer servidor;
+	private IServer server;
 	
-	private Registry registry;
+	private Registry registro;
 	
 	private Map<String, Cliente> mapaClientes = new HashMap<>();
 	
@@ -357,6 +361,8 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	private JButton btnDesconectar;
 	private JTextField txtNome;
 	private JTextArea txtAreaConectados;
+	private JButton btnIniciarServio;
+	private JButton btnParaServio;
 
 	@Override
 	public void registrarCliente(Cliente c) throws RemoteException {
@@ -387,11 +393,13 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		// TODO Auto-generated method stub
 		
 	}
-	public void mostrarConectados(){
-		mapaClientes = Server.getInstance().enviarListaConectados();
+	public void mostrarConectados(Map<String, Cliente> mapc){
 		txtAreaConectados.setText("");
-		for (Entry<String, Cliente> c : mapaClientes.entrySet()){
-			txtAreaConectados.append(c.getValue().getNome());
+		for (Entry<String, Cliente> c : mapc.entrySet()){
+			txtAreaConectados.append(data.format(new Date()));
+			txtAreaConectados.append(" -- ");
+			txtAreaConectados.append(c.getValue().getNome() + " " + c.getValue().getIp());
+			txtAreaConectados.append("\n");
 		}
 		
 	}
@@ -400,9 +408,14 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	}
 	protected void iniciarServico(){
 		Server.getInstance().iniciarServico();
+		btnIniciarServio.setEnabled(false);
+		btnParaServio.setEnabled(true);
+		
 	}
 	protected void pararServico(){
 		Server.getInstance().pararServico();
+		btnIniciarServio.setEnabled(true);
+		btnParaServio.setEnabled(false);
 	}
 	
 	protected void conectar(){
@@ -431,7 +444,17 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		c.setNome(nome);
 		c.setIp(pegarIPLocal());
 		c.setPorta(1818);
-		Server.getInstance().conectar(host, intPorta, c);
+		try {
+			registro = LocateRegistry.getRegistry(host, intPorta);
+			server = (IServer)registro.lookup(IServer.NOME_SERVICO);
+			
+			
+			server.registrarCliente(c);
+			
+			System.out.println("Conectado");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		txtIP.setEnabled(false);
 		txtPorta.setEnabled(false);
 		btnConectar.setEnabled(false);
@@ -439,9 +462,17 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	}
 	protected void desconectar() {
 		try {
-			Server.getInstance().desconectar(c);
+			if (server != null) {
+				Server.getInstance().removerDaLista(c);
+				server = null;
+				
+			}
+			txtIP.setEnabled(true);
+			txtPorta.setEnabled(true);
+			btnConectar.setEnabled(true);
+			
 		} catch (Exception e) {
-			// TODO: handle exception
+			e.printStackTrace();
 		}
 
 		
