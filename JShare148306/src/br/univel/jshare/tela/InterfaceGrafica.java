@@ -2,11 +2,13 @@ package br.univel.jshare.tela;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -19,8 +21,10 @@ import javax.swing.border.EmptyBorder;
 
 
 import br.dagostini.jshare.comum.pojos.Arquivo;
+import br.dagostini.jshare.comum.pojos.Diretorio;
 import br.dagostini.jshare.comun.Cliente;
 import br.dagostini.jshare.comun.IServer;
+import br.univel.jshare.modelo.TableModel;
 import br.univel.server.Server;
 
 import javax.swing.JTabbedPane;
@@ -33,7 +37,13 @@ import java.awt.GridBagConstraints;
 import javax.swing.JLabel;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
 import javax.swing.JList;
@@ -47,6 +57,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	private JPanel contentPane;
 	private static InterfaceGrafica instance = null;
 	private SimpleDateFormat data = new SimpleDateFormat("dd/MM/yyyy H:mm:ss:SSS");
+	private TableModel modeloTabela;
 
 	/**
 	 * Launch the application.
@@ -91,8 +102,8 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		GridBagLayout gbl_panel = new GridBagLayout();
 		gbl_panel.columnWidths = new int[]{29, 69, 40, 82, 0, 0, 0, 35, 40, 52, 0, 0};
 		gbl_panel.rowHeights = new int[]{24, 20, 17, 0, 47, 0, 0, 0, 0, 0};
-		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		panel.setLayout(gbl_panel);
 		
 		btnConectar = new JButton("Conectar");
@@ -197,29 +208,46 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		gbc_lblListaDeArquivos.gridy = 5;
 		panel.add(lblListaDeArquivos, gbc_lblListaDeArquivos);
 		
-		table = new JTable();
-		GridBagConstraints gbc_table = new GridBagConstraints();
-		gbc_table.gridheight = 4;
-		gbc_table.gridwidth = 8;
-		gbc_table.insets = new Insets(0, 0, 0, 5);
-		gbc_table.fill = GridBagConstraints.BOTH;
-		gbc_table.gridx = 1;
-		gbc_table.gridy = 6;
-		panel.add(table, gbc_table);
+		JLabel lblPesquisar = new JLabel("Pesquisar");
+		GridBagConstraints gbc_lblPesquisar = new GridBagConstraints();
+		gbc_lblPesquisar.anchor = GridBagConstraints.EAST;
+		gbc_lblPesquisar.insets = new Insets(0, 0, 5, 5);
+		gbc_lblPesquisar.gridx = 5;
+		gbc_lblPesquisar.gridy = 5;
+		panel.add(lblPesquisar, gbc_lblPesquisar);
 		
-		JButton btnDownload = new JButton("Download");
-		btnDownload.addActionListener(new ActionListener() {
+		txtPesquisar = new JTextField();
+		GridBagConstraints gbc_txtPesquisar = new GridBagConstraints();
+		gbc_txtPesquisar.gridwidth = 3;
+		gbc_txtPesquisar.insets = new Insets(0, 0, 5, 5);
+		gbc_txtPesquisar.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtPesquisar.gridx = 6;
+		gbc_txtPesquisar.gridy = 5;
+		panel.add(txtPesquisar, gbc_txtPesquisar);
+		txtPesquisar.setColumns(10);
+		
+		btnPesquisar = new JButton("Pesquisar");
+		btnPesquisar.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				
+				pesquisarArquivo();
 			}
 		});
-		GridBagConstraints gbc_btnDownload = new GridBagConstraints();
-		gbc_btnDownload.insets = new Insets(0, 0, 5, 0);
-		gbc_btnDownload.anchor = GridBagConstraints.WEST;
-		gbc_btnDownload.gridwidth = 2;
-		gbc_btnDownload.gridx = 9;
-		gbc_btnDownload.gridy = 6;
-		panel.add(btnDownload, gbc_btnDownload);
+		GridBagConstraints gbc_btnPesquisar = new GridBagConstraints();
+		gbc_btnPesquisar.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnPesquisar.insets = new Insets(0, 0, 5, 5);
+		gbc_btnPesquisar.gridx = 9;
+		gbc_btnPesquisar.gridy = 5;
+		panel.add(btnPesquisar, gbc_btnPesquisar);
+		
+		tableArquivos = new JTable();
+		GridBagConstraints gbc_tableArquivos = new GridBagConstraints();
+		gbc_tableArquivos.gridheight = 4;
+		gbc_tableArquivos.gridwidth = 8;
+		gbc_tableArquivos.insets = new Insets(0, 0, 0, 5);
+		gbc_tableArquivos.fill = GridBagConstraints.BOTH;
+		gbc_tableArquivos.gridx = 1;
+		gbc_tableArquivos.gridy = 6;
+		panel.add(tableArquivos, gbc_tableArquivos);
 		
 		JPanel panel_1 = new JPanel();
 		tabbedPane.addTab("Servidor", null, panel_1, null);
@@ -322,6 +350,18 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		
 		
 		labelIP.setText(pegarIPLocal());
+		
+		JButton btnDownload = new JButton("Download");
+		btnDownload.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				
+			}
+		});
+		GridBagConstraints gbc_btnDownload = new GridBagConstraints();
+		gbc_btnDownload.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnDownload.gridx = 9;
+		gbc_btnDownload.gridy = 9;
+		panel.add(btnDownload, gbc_btnDownload);
 		labelIPSV.setText(pegarIPLocal());
 		btnParaServio.setEnabled(false);
 	}
@@ -356,13 +396,15 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	
 	private JTextField txtIP;
 	private JTextField txtPorta;
-	private JTable table;
+	private JTable tableArquivos;
 	private JButton btnConectar;
 	private JButton btnDesconectar;
 	private JTextField txtNome;
 	private JTextArea txtAreaConectados;
 	private JButton btnIniciarServio;
 	private JButton btnParaServio;
+	private JTextField txtPesquisar;
+	private JButton btnPesquisar;
 
 	@Override
 	public void registrarCliente(Cliente c) throws RemoteException {
@@ -384,9 +426,27 @@ public class InterfaceGrafica extends JFrame implements IServer{
 
 	@Override
 	public byte[] baixarArquivo(Arquivo arq) throws RemoteException {
-		// TODO Auto-generated method stub
+		List<Arquivo> arquivos = criarListaDeArquivos();
+		
+		for (Arquivo arquivo : arquivos) {
+			if (arquivo.getNome().contains(arq.getNome())){;
+				byte[] dados = lerArquivo(new File("C:\\JShare\\Uploads\\"+arq.getNome()));
+				
+				return dados;
+			}
+		}
 		return null;
 	}
+	private byte[] lerArquivo(File file) {
+		Path path = Paths.get(file.getPath());
+		try {
+			byte[] dados = Files.readAllBytes(path);
+			return dados;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 
 	@Override
 	public void desconectar(Cliente c) throws RemoteException {
@@ -403,6 +463,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		}
 		
 	}
+
 	public void atualizarTextArea (){
 		
 	}
@@ -450,7 +511,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 			
 			
 			server.registrarCliente(c);
-			
+			server.publicarListaArquivos(c, criarListaDeArquivos());
 			System.out.println("Conectado");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -479,6 +540,88 @@ public class InterfaceGrafica extends JFrame implements IServer{
 
 		
 	}
+	private List<Arquivo> criarListaDeArquivos() {	
+		File dirUpload = new File("C:/Teste/JShare/Uploads");
+		File dirDownload = new File("C:/Teste/JShare/Downloads");
+
+		if (!dirUpload.exists())
+			dirUpload.mkdirs();
+		if (!dirDownload.exists())
+			dirDownload.mkdirs();
+		
+		
+		List<Arquivo> listaArquivos = new ArrayList<>();
+		List<Diretorio> listaDiretorios = new ArrayList<>();
+		
+		for (File file : dirUpload.listFiles()) {
+			if (file.isFile()) {
+				Arquivo arq = new Arquivo();
+				arq.setNome(file.getName());
+				arq.setTamanho(file.length());
+				listaArquivos.add(arq);
+			} else {
+				Diretorio dir = new Diretorio();
+				dir.setNome(file.getName());
+				listaDiretorios.add(dir);				
+			}
+		}
+		
+		return listaArquivos;
+	}
+	protected void pesquisarArquivo() {
+
+		String pesquisa = txtPesquisar.getText();
+		Map<Cliente, List<Arquivo>> arquivosPesquisados = new HashMap<>();
+		try {
+			arquivosPesquisados = server.procurarArquivo(pesquisa);
+			
+			if (arquivosPesquisados.isEmpty()){
+				JOptionPane.showMessageDialog(this, "Nao foram encontrados arquivos no servidor!");
+				return;
+			} else {
+				modeloTabela = new TableModel(arquivosPesquisados);
+				tableArquivos.setModel(modeloTabela);
+			}
+			
+		} catch (RemoteException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	protected void downloadArquivo() {
+		
+		String nomeArquivo = (String) tableArquivos.getValueAt(tableArquivos.getSelectedRow(), 0);
+		String IP = (String) tableArquivos.getValueAt(tableArquivos.getSelectedRow(), 3);
+		int porta = (int) tableArquivos.getValueAt(tableArquivos.getSelectedRow(), 4);
+		Arquivo arquivo = new Arquivo();
+		arquivo.setNome(nomeArquivo);
+		
+		
+		try {
+			registro = LocateRegistry.getRegistry(IP, porta);
+			IServer clienteServidor = (IServer) registro.lookup(IServer.NOME_SERVICO);
+			clienteServidor.registrarCliente(cliente);
+			
+			byte[] baixarArquivo = clienteServidor.baixarArquivo(arquivo);
+			writeFile(new File("C:\\Teste\\JShare\\Downloads\\"+arquivo.getNome()), baixarArquivo);	
+			
+		} catch (RemoteException e) {
+			JOptionPane.showMessageDialog(this, "Erro ao fazer download do Arquivo");
+			e.printStackTrace();
+		} catch (NotBoundException e) {
+			JOptionPane.showMessageDialog(this, "Erro ao fazer download do Arquivo");
+			e.printStackTrace();
+		}
+	}
+	private void writeFile(File file, byte[] dados) {
+		try {
+			Files.write(Paths.get(file.getPath()), dados, StandardOpenOption.CREATE);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
+
 	
 
 }

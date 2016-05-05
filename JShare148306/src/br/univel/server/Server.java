@@ -36,11 +36,7 @@ public class Server implements IServer {
 	
 	private IServer server ;
 	
-	private IServer serverC ;
-	
 	private Registry registro;
-	
-	private Registry registroC;
 	
 	public File diretorio;
 	
@@ -61,13 +57,32 @@ public class Server implements IServer {
 	@Override
 	public void publicarListaArquivos(Cliente c, List<Arquivo> lista) throws RemoteException {
 		mapaArquivos.put(c, lista);
+		System.out.println(c.getNome() + " mandou a lista");
 		
 	}
 
 	@Override
 	public Map<Cliente, List<Arquivo>> procurarArquivo(String nome) throws RemoteException {
-		// TODO Auto-generated method stub
-		return null;
+		HashMap<Cliente, List<Arquivo>> resultado = new HashMap<>();
+		List<Arquivo> arquivosCliente = new ArrayList<>();
+		for(Map.Entry<Cliente, List<Arquivo>> lista : mapaArquivos.entrySet()) {
+			for(Arquivo arquivo: mapaArquivos.get(lista.getKey())){
+				if (arquivo.getNome().contains(nome.toLowerCase()) || 
+						arquivo.getNome().contains(nome.toUpperCase())) {	
+						arquivosCliente.add(arquivo);
+				}
+			}	
+			
+			if (!arquivosCliente.isEmpty()){
+				Cliente c = new Cliente();
+				c.setNome(lista.getKey().getNome());
+				c.setIp(lista.getKey().getIp());
+				c.setPorta(lista.getKey().getPorta());
+
+				resultado.put(c, arquivosCliente);
+			}
+		}
+		return resultado;
 	}
 
 	@Override
@@ -110,35 +125,11 @@ public class Server implements IServer {
 		}
 	
 	}
-	
-	private List<Arquivo> criarListaDeArquivos() {	
-		File dirUpload = new File("C:/Teste/JShare/Uploads");
-		File dirDownload = new File("C:/Teste/JShare/Downloads");
-
-		if (!dirUpload.exists())
-			dirUpload.mkdirs();
-		if (!dirDownload.exists())
-			dirDownload.mkdirs();
+	public void imprimir(){
 		
-		
-		List<Arquivo> listaArquivos = new ArrayList<>();
-		List<Diretorio> listaDiretorios = new ArrayList<>();
-		
-		for (File file : dirUpload.listFiles()) {
-			if (file.isFile()) {
-				Arquivo arq = new Arquivo();
-				arq.setNome(file.getName());
-				arq.setTamanho(file.length());
-				listaArquivos.add(arq);
-			} else {
-				Diretorio dir = new Diretorio();
-				dir.setNome(file.getName());
-				listaDiretorios.add(dir);				
-			}
-		}
-		
-		return listaArquivos;
 	}
+	
+	
 
 	
 }
