@@ -51,6 +51,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JScrollPane;
+import javax.swing.JFormattedTextField;
 
 public class InterfaceGrafica extends JFrame implements IServer{
 
@@ -87,7 +88,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	 */
 	public InterfaceGrafica() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 597, 397);
+		setBounds(100, 100, 636, 409);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -102,7 +103,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		GridBagLayout gbl_panel = new GridBagLayout();
 		gbl_panel.columnWidths = new int[]{29, 69, 40, 82, 0, 0, 0, 35, 40, 52, 0, 0};
 		gbl_panel.rowHeights = new int[]{24, 20, 17, 0, 47, 0, 0, 0, 0, 0};
-		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.columnWeights = new double[]{0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		panel.setLayout(gbl_panel);
 		
@@ -354,10 +355,12 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		JButton btnDownload = new JButton("Download");
 		btnDownload.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				downloadArquivo();
 				
 			}
 		});
 		GridBagConstraints gbc_btnDownload = new GridBagConstraints();
+		gbc_btnDownload.insets = new Insets(0, 0, 0, 5);
 		gbc_btnDownload.fill = GridBagConstraints.HORIZONTAL;
 		gbc_btnDownload.gridx = 9;
 		gbc_btnDownload.gridy = 9;
@@ -390,6 +393,8 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	private IServer server;
 	
 	private Registry registro;
+	
+	private Registry registroc;
 	
 	private Map<String, Cliente> mapaClientes = new HashMap<>();
 	
@@ -427,11 +432,11 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	@Override
 	public byte[] baixarArquivo(Arquivo arq) throws RemoteException {
 		List<Arquivo> arquivos = criarListaDeArquivos();
-		
+		System.out.println("Teste 1");
 		for (Arquivo arquivo : arquivos) {
 			if (arquivo.getNome().contains(arq.getNome())){;
 				byte[] dados = lerArquivo(new File("C:\\JShare\\Uploads\\"+arq.getNome()));
-				
+				System.out.println("Teste 2");
 				return dados;
 			}
 		}
@@ -450,7 +455,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 
 	@Override
 	public void desconectar(Cliente c) throws RemoteException {
-		// TODO Auto-generated method stub
+		
 		
 	}
 	public void mostrarConectados(Map<String, Cliente> mapc){
@@ -541,8 +546,8 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		
 	}
 	private List<Arquivo> criarListaDeArquivos() {	
-		File dirUpload = new File("C:/Teste/JShare/Uploads");
-		File dirDownload = new File("C:/Teste/JShare/Downloads");
+		File dirUpload = new File("C:/JShare/Uploads");
+		File dirDownload = new File("C:/JShare/Downloads");
 
 		if (!dirUpload.exists())
 			dirUpload.mkdirs();
@@ -595,15 +600,15 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		int porta = (int) tableArquivos.getValueAt(tableArquivos.getSelectedRow(), 4);
 		Arquivo arquivo = new Arquivo();
 		arquivo.setNome(nomeArquivo);
-		
+		System.out.println(nomeArquivo+ " "+IP + " "+porta);
 		
 		try {
 			registro = LocateRegistry.getRegistry(IP, porta);
-			IServer clienteServidor = (IServer) registro.lookup(IServer.NOME_SERVICO);
-			clienteServidor.registrarCliente(cliente);
+			IServer servidor = (IServer) registro.lookup(IServer.NOME_SERVICO);
+			servidor.registrarCliente(c);
 			
-			byte[] baixarArquivo = clienteServidor.baixarArquivo(arquivo);
-			writeFile(new File("C:\\Teste\\JShare\\Downloads\\"+arquivo.getNome()), baixarArquivo);	
+			byte[] baixarArquivo = baixarArquivo(arquivo);
+			writeFile(new File("C:\\JShare\\Downloads\\"+arquivo.getNome()), baixarArquivo);	
 			
 		} catch (RemoteException e) {
 			JOptionPane.showMessageDialog(this, "Erro ao fazer download do Arquivo");
@@ -617,6 +622,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		try {
 			Files.write(Paths.get(file.getPath()), dados, StandardOpenOption.CREATE);
 		} catch (IOException e) {
+				
 			e.printStackTrace();
 		}
 		

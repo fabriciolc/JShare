@@ -87,7 +87,7 @@ public class Server implements IServer {
 
 	@Override
 	public byte[] baixarArquivo(Arquivo arq) throws RemoteException {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
@@ -99,6 +99,7 @@ public class Server implements IServer {
 	public void removerDaLista(Cliente c) {
 		mapaClientes.remove(c.getIp());
 		InterfaceGrafica.getInstance().mostrarConectados(mapaClientes);
+		
 		
 	}
 	
