@@ -1,4 +1,4 @@
-package br.univel.cliente;
+package br.univel.server;
 
 import java.io.File;
 import java.rmi.RemoteException;
@@ -8,6 +8,8 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.rmi.Remote;
+
 
 import br.dagostini.jshare.comum.pojos.Arquivo;
 import br.dagostini.jshare.comun.Cliente;
@@ -28,7 +30,7 @@ public class Server implements IServer {
 
 	private Cliente cliente;
 	
-	private IServer server;
+	private IServer server ;
 	
 	private Registry registro;
 	
@@ -36,10 +38,14 @@ public class Server implements IServer {
 	
 	private Map<Cliente, List<Arquivo>> mapaArquivos = new HashMap<>();
 	
+	private Map<String, Cliente> mapaClientes = new HashMap<>();
 	
 	@Override
 	public void registrarCliente(Cliente c) throws RemoteException {
-		// TODO Auto-generated method stub
+		mapaClientes.put(c.getIp(), c);
+		System.out.println("Cliente: "+c.getNome()+" IP: "+c.getIp()+"Entrou");
+		
+		
 		
 	}
 
@@ -63,17 +69,58 @@ public class Server implements IServer {
 
 	@Override
 	public void desconectar(Cliente c) throws RemoteException {
-		// TODO Auto-generated method stub
-		
+		try {
+			if (server != null) {
+				UnicastRemoteObject.unexportObject(this, true);
+				removerDaLista(c);
+				server = null;
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}		
 	}
 	
-	protected void iniciarServico(){
+	private void removerDaLista(Cliente c) {
+		mapaClientes.remove(c.getIp());
+		
+	}
+	public void iniciarServico(){
 		try {
 			server = (IServer) UnicastRemoteObject.exportObject(this, 0);
 			registro = LocateRegistry.createRegistry(1818);
 			registro.rebind(IServer.NOME_SERVICO, server);
+			System.out.println("Serviço Iniciado");
 		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+	}
+	public void pararServico(){
+		try {
+			UnicastRemoteObject.unexportObject(this, true);
+			UnicastRemoteObject.unexportObject(registro, true);
+			
+			System.out.println("Serviço Parado");
+		} catch (Exception e) {
+			e.printStackTrace();
 			// TODO: handle exception
+		}
+	
+	}
+	
+	public void conectar(String host,int porta, Cliente c){
+	
+		
+		try {
+			registro = LocateRegistry.getRegistry(host, porta);
+			server = (IServer)registro.lookup(IServer.NOME_SERVICO);
+			
+			
+			System.out.println("Conectado");
+			registrarCliente(c);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		
 	}

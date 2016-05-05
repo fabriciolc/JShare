@@ -13,9 +13,12 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 
+
 import br.dagostini.jshare.comum.pojos.Arquivo;
 import br.dagostini.jshare.comun.Cliente;
 import br.dagostini.jshare.comun.IServer;
+import br.univel.server.Server;
+
 import javax.swing.JTabbedPane;
 import javax.swing.JButton;
 import java.awt.GridLayout;
@@ -26,9 +29,11 @@ import java.awt.GridBagConstraints;
 import javax.swing.JLabel;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.net.InetAddress;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextField;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JTable;
 
 public class InterfaceGrafica extends JFrame implements IServer{
@@ -69,60 +74,112 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		panel.setToolTipText("");
 		tabbedPane.addTab("Cliente", null, panel, null);
 		GridBagLayout gbl_panel = new GridBagLayout();
-		gbl_panel.columnWidths = new int[]{29, 100, 61, 82, 0, 0, 0, 35, 40, 52, 0, 0};
-		gbl_panel.rowHeights = new int[]{0, 0, 0, 0, 47, 0, 0, 0, 0};
+		gbl_panel.columnWidths = new int[]{29, 69, 40, 82, 0, 0, 0, 35, 40, 52, 0, 0};
+		gbl_panel.rowHeights = new int[]{24, 20, 17, 0, 47, 0, 0, 0, 0, 0};
 		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		panel.setLayout(gbl_panel);
+		
+		btnConectar = new JButton("Conectar");
+		btnConectar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				conectar();
+			}
+		});
+		
+		JLabel lblIpLocal_1 = new JLabel("IP Local:");
+		GridBagConstraints gbc_lblIpLocal_1 = new GridBagConstraints();
+		gbc_lblIpLocal_1.anchor = GridBagConstraints.WEST;
+		gbc_lblIpLocal_1.insets = new Insets(0, 0, 5, 5);
+		gbc_lblIpLocal_1.gridx = 1;
+		gbc_lblIpLocal_1.gridy = 0;
+		panel.add(lblIpLocal_1, gbc_lblIpLocal_1);
+		
+		JLabel labelIP = new JLabel("");
+		GridBagConstraints gbc_labelIP = new GridBagConstraints();
+		gbc_labelIP.insets = new Insets(0, 0, 5, 5);
+		gbc_labelIP.gridx = 2;
+		gbc_labelIP.gridy = 0;
+		panel.add(labelIP, gbc_labelIP);
+		
+		JLabel lblNome = new JLabel("Nome: ");
+		GridBagConstraints gbc_lblNome = new GridBagConstraints();
+		gbc_lblNome.anchor = GridBagConstraints.WEST;
+		gbc_lblNome.insets = new Insets(0, 0, 5, 5);
+		gbc_lblNome.gridx = 1;
+		gbc_lblNome.gridy = 1;
+		panel.add(lblNome, gbc_lblNome);
+		
+		txtNome = new JTextField();
+		GridBagConstraints gbc_txtNome = new GridBagConstraints();
+		gbc_txtNome.gridwidth = 4;
+		gbc_txtNome.insets = new Insets(0, 0, 5, 5);
+		gbc_txtNome.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtNome.gridx = 2;
+		gbc_txtNome.gridy = 1;
+		panel.add(txtNome, gbc_txtNome);
+		txtNome.setColumns(10);
+		GridBagConstraints gbc_btnConectar = new GridBagConstraints();
+		gbc_btnConectar.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnConectar.insets = new Insets(0, 0, 5, 5);
+		gbc_btnConectar.gridx = 9;
+		gbc_btnConectar.gridy = 1;
+		panel.add(btnConectar, gbc_btnConectar);
+		
+		btnDesconectar = new JButton("Desconectar");
+		btnDesconectar.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				desconectar();
+			}
+		});
 		
 		JLabel lblEndereoIp = new JLabel("Endere\u00E7o IP:");
 		GridBagConstraints gbc_lblEndereoIp = new GridBagConstraints();
 		gbc_lblEndereoIp.insets = new Insets(0, 0, 5, 5);
 		gbc_lblEndereoIp.anchor = GridBagConstraints.WEST;
 		gbc_lblEndereoIp.gridx = 1;
-		gbc_lblEndereoIp.gridy = 1;
+		gbc_lblEndereoIp.gridy = 2;
 		panel.add(lblEndereoIp, gbc_lblEndereoIp);
 		
-		textField = new JTextField();
-		GridBagConstraints gbc_textField = new GridBagConstraints();
-		gbc_textField.gridwidth = 4;
-		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField.insets = new Insets(0, 0, 5, 5);
-		gbc_textField.gridx = 2;
-		gbc_textField.gridy = 1;
-		panel.add(textField, gbc_textField);
-		textField.setColumns(10);
+		txtIP = new JTextField();
+		GridBagConstraints gbc_txtIP = new GridBagConstraints();
+		gbc_txtIP.gridwidth = 4;
+		gbc_txtIP.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtIP.insets = new Insets(0, 0, 5, 5);
+		gbc_txtIP.gridx = 2;
+		gbc_txtIP.gridy = 2;
+		panel.add(txtIP, gbc_txtIP);
+		txtIP.setColumns(10);
 		
 		JLabel lblPorta_1 = new JLabel("Porta:");
 		GridBagConstraints gbc_lblPorta_1 = new GridBagConstraints();
 		gbc_lblPorta_1.anchor = GridBagConstraints.EAST;
 		gbc_lblPorta_1.insets = new Insets(0, 0, 5, 5);
 		gbc_lblPorta_1.gridx = 6;
-		gbc_lblPorta_1.gridy = 1;
+		gbc_lblPorta_1.gridy = 2;
 		panel.add(lblPorta_1, gbc_lblPorta_1);
 		
-		textField_1 = new JTextField();
-		GridBagConstraints gbc_textField_1 = new GridBagConstraints();
-		gbc_textField_1.insets = new Insets(0, 0, 5, 5);
-		gbc_textField_1.fill = GridBagConstraints.HORIZONTAL;
-		gbc_textField_1.gridx = 7;
-		gbc_textField_1.gridy = 1;
-		panel.add(textField_1, gbc_textField_1);
-		textField_1.setColumns(10);
-		
-		JButton btnConectar = new JButton("Conectar");
-		GridBagConstraints gbc_btnConectar = new GridBagConstraints();
-		gbc_btnConectar.insets = new Insets(0, 0, 5, 5);
-		gbc_btnConectar.gridx = 9;
-		gbc_btnConectar.gridy = 1;
-		panel.add(btnConectar, gbc_btnConectar);
+		txtPorta = new JTextField();
+		GridBagConstraints gbc_txtPorta = new GridBagConstraints();
+		gbc_txtPorta.insets = new Insets(0, 0, 5, 5);
+		gbc_txtPorta.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtPorta.gridx = 7;
+		gbc_txtPorta.gridy = 2;
+		panel.add(txtPorta, gbc_txtPorta);
+		txtPorta.setColumns(10);
+		GridBagConstraints gbc_btnDesconectar = new GridBagConstraints();
+		gbc_btnDesconectar.fill = GridBagConstraints.HORIZONTAL;
+		gbc_btnDesconectar.insets = new Insets(0, 0, 5, 5);
+		gbc_btnDesconectar.gridx = 9;
+		gbc_btnDesconectar.gridy = 2;
+		panel.add(btnDesconectar, gbc_btnDesconectar);
 		
 		JLabel lblListaDeArquivos = new JLabel("Arquivos:");
 		GridBagConstraints gbc_lblListaDeArquivos = new GridBagConstraints();
 		gbc_lblListaDeArquivos.anchor = GridBagConstraints.WEST;
 		gbc_lblListaDeArquivos.insets = new Insets(0, 0, 5, 5);
 		gbc_lblListaDeArquivos.gridx = 1;
-		gbc_lblListaDeArquivos.gridy = 3;
+		gbc_lblListaDeArquivos.gridy = 5;
 		panel.add(lblListaDeArquivos, gbc_lblListaDeArquivos);
 		
 		table = new JTable();
@@ -132,19 +189,21 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		gbc_table.insets = new Insets(0, 0, 0, 5);
 		gbc_table.fill = GridBagConstraints.BOTH;
 		gbc_table.gridx = 1;
-		gbc_table.gridy = 4;
+		gbc_table.gridy = 6;
 		panel.add(table, gbc_table);
 		
 		JButton btnDownload = new JButton("Download");
 		btnDownload.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
+				
 			}
 		});
 		GridBagConstraints gbc_btnDownload = new GridBagConstraints();
+		gbc_btnDownload.insets = new Insets(0, 0, 5, 0);
 		gbc_btnDownload.anchor = GridBagConstraints.WEST;
 		gbc_btnDownload.gridwidth = 2;
 		gbc_btnDownload.gridx = 9;
-		gbc_btnDownload.gridy = 7;
+		gbc_btnDownload.gridy = 6;
 		panel.add(btnDownload, gbc_btnDownload);
 		
 		JPanel panel_1 = new JPanel();
@@ -182,6 +241,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		JButton btnIniciarServio = new JButton("Iniciar Servi\u00E7o");
 		btnIniciarServio.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				iniciarServico();
 			}
 		});
 		GridBagConstraints gbc_btnIniciarServio = new GridBagConstraints();
@@ -191,6 +251,11 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		panel_1.add(btnIniciarServio, gbc_btnIniciarServio);
 		
 		JButton btnParaServio = new JButton("Para Servi\u00E7o");
+		btnParaServio.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				pararServico();
+			}
+		});
 		GridBagConstraints gbc_btnParaServio = new GridBagConstraints();
 		gbc_btnParaServio.insets = new Insets(0, 0, 5, 0);
 		gbc_btnParaServio.gridx = 9;
@@ -220,17 +285,42 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		gbc_list.gridx = 1;
 		gbc_list.gridy = 7;
 		panel_1.add(list, gbc_list);
+		
+		
+		labelIP.setText(pegarIPLocal());
 	}
 	
-	
+
+
+
+	private String pegarIPLocal() {
+		String ip = "N�o foi possivel encontrar nem um IP Local";
+		try {
+           ip = InetAddress.getLocalHost().getHostAddress();
+         return ip;
+        } catch (Exception e1) {
+        	e1.printStackTrace();
+        }
+		return ip;
+		
+	}
+
+
+	Cliente c = new Cliente();
+
 	private Cliente cliente;
 	
 	private IServer servidor;
 	
 	private Registry registry;
-	private JTextField textField;
-	private JTextField textField_1;
+	
+	
+	private JTextField txtIP;
+	private JTextField txtPorta;
 	private JTable table;
+	private JButton btnConectar;
+	private JButton btnDesconectar;
+	private JTextField txtNome;
 
 	@Override
 	public void registrarCliente(Cliente c) throws RemoteException {
@@ -263,16 +353,58 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	}
 	
 	protected void iniciarServico(){
-		try {
-			servidor = (IServer) UnicastRemoteObject.exportObject(this, 0);
-			registry = LocateRegistry.createRegistry(1818);
-			registry.rebind(IServer.NOME_SERVICO, servidor);
-
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
+		Server.getInstance().iniciarServico();
 	}
+	protected void pararServico(){
+		Server.getInstance().pararServico();
+	}
+	
 	protected void conectar(){
+		
+		String nome = txtNome.getText().trim();
+		if (nome.length() == 0) {
+			JOptionPane.showMessageDialog(this, "Você precisa digitar um nome!");
+			return;
+		}
+
+		
+		String host = txtIP.getText().trim();
+		if (!host.matches("[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}")) {
+			JOptionPane.showMessageDialog(this, "O endereço ip parece inválido!");
+			return;
+		}
+		String strPorta = txtPorta.getText().trim();
+		if (!strPorta.matches("[0-9]+") || strPorta.length() > 5) {
+			JOptionPane.showMessageDialog(this, "A porta deve ser um valor numérico de no máximo 5 dígitos!");
+			return;
+		}
+		int intPorta = Integer.parseInt(strPorta);
+		
+		
+		
+		c.setNome(nome);
+		c.setIp(pegarIPLocal());
+		c.setPorta(1818);
+		Server.getInstance().conectar(host, intPorta, c);
+		txtIP.setEnabled(false);
+		txtPorta.setEnabled(false);
+		btnConectar.setEnabled(false);
+		
+	}
+	protected void desconectar() {
+		try {
+			if (servidor != null) {
+				UnicastRemoteObject.unexportObject(this, true);
+
+				servidor = null;
+			}
+			txtIP.setEnabled(true);
+			txtPorta.setEnabled(true);
+			btnConectar.setEnabled(true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 		
 	}
 	
