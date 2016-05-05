@@ -6,8 +6,10 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -35,10 +37,13 @@ import javax.swing.JTextField;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
 
 public class InterfaceGrafica extends JFrame implements IServer{
 
 	private JPanel contentPane;
+	private static InterfaceGrafica instance = null;
 
 	/**
 	 * Launch the application.
@@ -49,11 +54,18 @@ public class InterfaceGrafica extends JFrame implements IServer{
 				try {
 					InterfaceGrafica frame = new InterfaceGrafica();
 					frame.setVisible(true);
+					instance = frame;
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+	}
+	public static InterfaceGrafica getInstance() {
+	      if(instance == null) {
+	         instance = new InterfaceGrafica();
+	      }
+	      return instance;
 	}
 
 	/**
@@ -61,7 +73,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	 */
 	public InterfaceGrafica() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 552, 397);
+		setBounds(100, 100, 597, 397);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
@@ -209,8 +221,8 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		JPanel panel_1 = new JPanel();
 		tabbedPane.addTab("Servidor", null, panel_1, null);
 		GridBagLayout gbl_panel_1 = new GridBagLayout();
-		gbl_panel_1.columnWidths = new int[]{0, 93, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		gbl_panel_1.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 0, 0, 0};
+		gbl_panel_1.columnWidths = new int[]{0, 93, 0, 0, 0, 0, 0, 0, 0, 73, 0};
+		gbl_panel_1.rowHeights = new int[]{0, 0, 0, 0, 0, 0, 67, 0, 0};
 		gbl_panel_1.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
 		gbl_panel_1.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, Double.MIN_VALUE};
 		panel_1.setLayout(gbl_panel_1);
@@ -223,12 +235,26 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		gbc_lblIpLocal.gridy = 1;
 		panel_1.add(lblIpLocal, gbc_lblIpLocal);
 		
+		JLabel labelIPSV = new JLabel("");
+		GridBagConstraints gbc_labelIPSV = new GridBagConstraints();
+		gbc_labelIPSV.insets = new Insets(0, 0, 5, 5);
+		gbc_labelIPSV.gridx = 2;
+		gbc_labelIPSV.gridy = 1;
+		panel_1.add(labelIPSV, gbc_labelIPSV);
+		
 		JLabel lblPorta = new JLabel("Porta: ");
 		GridBagConstraints gbc_lblPorta = new GridBagConstraints();
 		gbc_lblPorta.insets = new Insets(0, 0, 5, 5);
 		gbc_lblPorta.gridx = 4;
 		gbc_lblPorta.gridy = 1;
 		panel_1.add(lblPorta, gbc_lblPorta);
+		
+		JLabel label = new JLabel("1818");
+		GridBagConstraints gbc_label = new GridBagConstraints();
+		gbc_label.insets = new Insets(0, 0, 5, 5);
+		gbc_label.gridx = 5;
+		gbc_label.gridy = 1;
+		panel_1.add(label, gbc_label);
 		
 		JLabel lblPastaCompartilhada = new JLabel("Pasta Compartilhada");
 		GridBagConstraints gbc_lblPastaCompartilhada = new GridBagConstraints();
@@ -272,23 +298,30 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		
 		JLabel lblPessoasConectadas = new JLabel("Pessoas Conectadas:");
 		GridBagConstraints gbc_lblPessoasConectadas = new GridBagConstraints();
+		gbc_lblPessoasConectadas.anchor = GridBagConstraints.WEST;
 		gbc_lblPessoasConectadas.insets = new Insets(0, 0, 5, 5);
 		gbc_lblPessoasConectadas.gridx = 1;
-		gbc_lblPessoasConectadas.gridy = 6;
+		gbc_lblPessoasConectadas.gridy = 5;
 		panel_1.add(lblPessoasConectadas, gbc_lblPessoasConectadas);
 		
-		JList list = new JList();
-		GridBagConstraints gbc_list = new GridBagConstraints();
-		gbc_list.gridwidth = 7;
-		gbc_list.insets = new Insets(0, 0, 0, 5);
-		gbc_list.fill = GridBagConstraints.BOTH;
-		gbc_list.gridx = 1;
-		gbc_list.gridy = 7;
-		panel_1.add(list, gbc_list);
+		JScrollPane scrollPane = new JScrollPane();
+		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+		gbc_scrollPane.gridheight = 2;
+		gbc_scrollPane.gridwidth = 8;
+		gbc_scrollPane.insets = new Insets(0, 0, 0, 5);
+		gbc_scrollPane.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane.gridx = 1;
+		gbc_scrollPane.gridy = 6;
+		panel_1.add(scrollPane, gbc_scrollPane);
+		
+		txtAreaConectados = new JTextArea();
+		scrollPane.setViewportView(txtAreaConectados);
 		
 		
 		labelIP.setText(pegarIPLocal());
+		labelIPSV.setText(pegarIPLocal());
 	}
+	
 	
 
 
@@ -314,6 +347,8 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	
 	private Registry registry;
 	
+	private Map<String, Cliente> mapaClientes = new HashMap<>();
+	
 	
 	private JTextField txtIP;
 	private JTextField txtPorta;
@@ -321,6 +356,7 @@ public class InterfaceGrafica extends JFrame implements IServer{
 	private JButton btnConectar;
 	private JButton btnDesconectar;
 	private JTextField txtNome;
+	private JTextArea txtAreaConectados;
 
 	@Override
 	public void registrarCliente(Cliente c) throws RemoteException {
@@ -351,7 +387,17 @@ public class InterfaceGrafica extends JFrame implements IServer{
 		// TODO Auto-generated method stub
 		
 	}
-	
+	public void mostrarConectados(){
+		mapaClientes = Server.getInstance().enviarListaConectados();
+		txtAreaConectados.setText("");
+		for (Entry<String, Cliente> c : mapaClientes.entrySet()){
+			txtAreaConectados.append(c.getValue().getNome());
+		}
+		
+	}
+	public void atualizarTextArea (){
+		
+	}
 	protected void iniciarServico(){
 		Server.getInstance().iniciarServico();
 	}

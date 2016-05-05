@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.rmi.Remote;
+import br.univel.jshare.tela.*;
 
 
 import br.dagostini.jshare.comum.pojos.Arquivo;
@@ -80,11 +81,19 @@ public class Server implements IServer {
 			e.printStackTrace();
 		}		
 	}
+	public void teste(){
+		InterfaceGrafica.getInstance().mostrarConectados();
+	}
+	
+	public Map<String, Cliente> enviarListaConectados(){
+		return mapaClientes;
+	}
 	
 	private void removerDaLista(Cliente c) {
 		mapaClientes.remove(c.getIp());
 		
 	}
+	
 	public void iniciarServico(){
 		try {
 			server = (IServer) UnicastRemoteObject.exportObject(this, 0);
@@ -116,9 +125,10 @@ public class Server implements IServer {
 			registro = LocateRegistry.getRegistry(host, porta);
 			server = (IServer)registro.lookup(IServer.NOME_SERVICO);
 			
+			server.registrarCliente(c);
+			teste();
 			
 			System.out.println("Conectado");
-			registrarCliente(c);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
